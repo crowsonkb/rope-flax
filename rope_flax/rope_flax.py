@@ -1,7 +1,7 @@
 """Rotary Position Embedding for Flax."""
 
 from functools import wraps
-from typing import Tuple
+from typing import Optional, Tuple
 
 from einshape import jax_einshape as einshape
 import flax.linen as nn
@@ -69,7 +69,7 @@ class RoPE(nn.Module):
         return apply_rotary_emb(freqs, x, start_index=self.start_index)
 
 
-def centers(start: float, stop: float, num: int, dtype: jnp.dtype = None) -> jax.Array:
+def centers(start: float, stop: float, num: int, dtype: Optional[jnp.dtype] = None) -> jax.Array:
     edges = jnp.linspace(start, stop, num + 1, dtype=dtype)
     return (edges[:-1] + edges[1:]) / 2
 
@@ -102,7 +102,7 @@ def make_axial_pos(
     w: int,
     pixel_aspect_ratio: float = 1.0,
     align_corners: bool = False,
-    dtype: jnp.dtype = None,
+    dtype: Optional[jnp.dtype] = None,
 ) -> jax.Array:
     y_min, y_max, x_min, x_max = bounding_box(h, w, pixel_aspect_ratio)
     if align_corners:
