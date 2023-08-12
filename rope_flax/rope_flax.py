@@ -98,13 +98,20 @@ def bounding_box(h: int, w: int, pixel_aspect_ratio: float = 1.0) -> Tuple[int, 
 
 
 def make_axial_pos(
-    h: int, w: int, pixel_aspect_ratio: float = 1.0, align_corners: bool = False
+    h: int,
+    w: int,
+    pixel_aspect_ratio: float = 1.0,
+    align_corners: bool = False,
+    dtype: jnp.dtype = None,
 ) -> jax.Array:
     y_min, y_max, x_min, x_max = bounding_box(h, w, pixel_aspect_ratio)
     if align_corners:
-        return make_grid(jnp.linspace(y_min, y_max, h), jnp.linspace(x_min, x_max, w))
+        h_pos = jnp.linspace(y_min, y_max, h, dtype=dtype)
+        w_pos = jnp.linspace(x_min, x_max, w, dtype=dtype)
     else:
-        return make_grid(centers(y_min, y_max, h), centers(x_min, x_max, w))
+        h_pos = centers(y_min, y_max, h, dtype=dtype)
+        w_pos = centers(x_min, x_max, w, dtype=dtype)
+    return make_grid(h_pos, w_pos)
 
 
 class AxialRoPE(nn.Module):
