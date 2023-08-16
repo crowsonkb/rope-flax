@@ -35,7 +35,7 @@ def freqs_lang(theta: float = 10000.0) -> callable:
     def init(key, shape, dtype=jnp.float32):
         dim = shape[-1] * 2
         freqs = 1.0 / (theta ** (jnp.arange(0, dim, 2, dtype=dtype)[: (dim // 2)] / dim))
-        return jnp.broadcast_to(freqs, shape)
+        return jnp.broadcast_to(jnp.log(freqs), shape)
 
     return init
 
@@ -44,7 +44,7 @@ def freqs_pixel(max_freq: float = 256.0) -> callable:
     @wraps(freqs_pixel)
     def init(key, shape, dtype=jnp.float32):
         freqs = jnp.linspace(1.0, max_freq / 2, shape[-1], dtype=dtype) * jnp.pi
-        return jnp.broadcast_to(freqs, shape)
+        return jnp.broadcast_to(jnp.log(freqs), shape)
 
     return init
 
@@ -61,7 +61,7 @@ class RoPE(nn.Module):
         self.freqs = self.param("freqs", self.freqs_init, shape)
 
     def get_freqs(self, pos: jax.Array) -> jax.Array:
-        freqs = jnp.repeat(self.freqs, 2, axis=-1)
+        freqs = jnp.repeat(jnp.exp(self.freqs), 2, axis=-1)
         return pos[..., None, None] * freqs.astype(self.dtype)
 
     def __call__(self, x: jax.Array, pos: jax.Array) -> jax.Array:
@@ -130,8 +130,8 @@ class AxialRoPE(nn.Module):
     def get_freqs(self, pos: jax.Array) -> jax.Array:
         if pos.shape[-1] != 2:
             raise ValueError("input shape must be (..., 2)")
-        freqs_h = pos[..., None, None, 0] * self.freqs_h.astype(self.dtype)
-        freqs_w = pos[..., None, None, 1] * self.freqs_w.astype(self.dtype)
+        freqs_h = pos[..., None, None, 0] * jnp.exp(self.freqs_h.astype(self.dtype))
+        freqs_w = pos[..., None, None, 1] * jnp.exp(self.freqs_w.astype(self.dtype))
         freqs = jnp.concatenate((freqs_h, freqs_w), axis=-1)
         freqs = jnp.repeat(freqs, 2, axis=-1)
         return freqs
