@@ -40,11 +40,22 @@ def freqs_lang(theta: float = 10000.0) -> callable:
     return init
 
 
-def freqs_pixel(max_freq: float = 256.0) -> callable:
+def freqs_pixel(max_freq: float = 10.0) -> callable:
     @wraps(freqs_pixel)
     def init(key, shape, dtype=jnp.float32):
         freqs = jnp.linspace(1.0, max_freq / 2, shape[-1], dtype=dtype) * jnp.pi
         return jnp.broadcast_to(jnp.log(freqs), shape)
+
+    return init
+
+
+def freqs_pixel_log(max_freq: float = 10.0) -> callable:
+    @wraps(freqs_pixel_log)
+    def init(key, shape, dtype=jnp.float32):
+        log_min = jnp.log(jnp.pi)
+        log_max = jnp.log(max_freq * jnp.pi / 2)
+        freqs = jnp.linspace(log_min, log_max, shape[-1], dtype=dtype)
+        return jnp.broadcast_to(freqs, shape)
 
     return init
 
@@ -119,8 +130,8 @@ class AxialRoPE(nn.Module):
     num_heads: int = 1
     start_index: int = 0
     dtype: jnp.dtype = jnp.float32
-    freqs_h_init: callable = freqs_pixel()
-    freqs_w_init: callable = freqs_pixel()
+    freqs_h_init: callable = freqs_pixel(max_freq=10.0)
+    freqs_w_init: callable = freqs_pixel(max_freq=10.0)
 
     def setup(self):
         shape = self.num_heads, self.dim // 4
