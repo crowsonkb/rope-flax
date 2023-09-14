@@ -92,8 +92,8 @@ def make_grid(h_pos: jax.Array, w_pos: jax.Array) -> jax.Array:
 
 def bounding_box(h: int, w: int, pixel_aspect_ratio: float = 1.0) -> Tuple[int, int, int, int]:
     # Adjusted dimensions
-    w_adj = w * pixel_aspect_ratio
-    h_adj = h
+    w_adj = w
+    h_adj = h * pixel_aspect_ratio
 
     # Adjusted aspect ratio
     ar_adj = w_adj / h_adj
